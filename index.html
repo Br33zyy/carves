@@ -23,8 +23,6 @@
             width: 100%;
             height: 100%;
             z-index: -1;
-            opacity: 1;
-            transition: opacity 2s ease-out;
         }
 
         /* Header */
@@ -244,13 +242,24 @@
             requestAnimationFrame(updateStars);
         }
 
-        // Stop and fade out stars after 20 seconds
-        setTimeout(function() {
-            canvas.style.opacity = '0'; // Fade out stars
-            setTimeout(() => {
-                canvas.style.display = 'none'; // Remove stars from view completely
-            }, 2000); // After fading out
-        }, 20000); // 20 seconds
+        // Play a ping sound when a paused star is clicked
+        function playPingSound() {
+            const audio = new Audio('https://www.soundjay.com/button/beep-07.wav'); // Ping sound
+            audio.play();
+        }
+
+        // Check for star click
+        canvas.addEventListener('click', (event) => {
+            stars.forEach(star => {
+                if (!star.paused) {
+                    const distance = Math.sqrt(Math.pow(event.clientX - star.x, 2) + Math.pow(event.clientY - star.y, 2));
+                    if (distance < star.radius) {
+                        star.paused = true; // Pause this star
+                        playPingSound(); // Play the ping sound
+                    }
+                }
+            });
+        });
 
         for (let i = 0; i < 100; i++) stars.push(createStar());
         updateStars();
