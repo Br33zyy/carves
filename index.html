@@ -12,7 +12,35 @@
             background: black;
             color: white;
             overflow-x: hidden;
-            position: relative;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            color: orange;
+            font-size: 24px;
+            font-weight: bold;
+            opacity: 1;
+            transition: opacity 1s ease-out;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
         }
 
         /* Starfall Effect */
@@ -108,49 +136,10 @@
             opacity: 1;
             transform: translateY(0);
         }
-
-        /* Loading Screen */
-        .loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 999;
-            opacity: 1;
-            transition: opacity 0.5s ease-in-out;
-            visibility: visible;
-        }
-
-        .loading-text {
-            font-size: 2rem;
-            position: absolute;
-            left: -100%;
-            animation: fadeInLeft 2s forwards;
-        }
-
-        @keyframes fadeInLeft {
-            0% {
-                left: -100%;
-            }
-            100% {
-                left: 0;
-            }
-        }
-
     </style>
 </head>
 <body>
-    <!-- Loading Screen -->
-    <div class="loading-screen" id="loading-screen">
-        <div class="loading-text">Wait here...</div>
-    </div>
-
+    <div class="loading-screen" id="loading-screen">Loading...</div>
     <canvas id="starfall"></canvas>
 
     <header>
@@ -186,13 +175,6 @@
     </section>
 
     <script>
-        // Hide the loading screen after the page is fully loaded
-        window.addEventListener('load', function () {
-            const loadingScreen = document.getElementById('loading-screen');
-            loadingScreen.style.opacity = '0';
-            loadingScreen.style.visibility = 'hidden';
-        });
-
         // Fade-in on Scroll
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
@@ -208,6 +190,8 @@
         const canvas = document.getElementById('starfall');
         const ctx = canvas.getContext('2d');
         let stars = [];
+        const stopStarIndex = Math.floor(Math.random() * 100); // Random star to stop
+        let stoppedStar = null;
 
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
@@ -219,7 +203,7 @@
                 radius: Math.random() * 2,
                 color: 'orange',
                 speed: Math.random() * 2 + 1,
-                isPausable: Math.random() < 0.05 // 5% chance for a star to pause
+                stopped: false
             };
         }
 
@@ -232,37 +216,46 @@
 
         function updateStars() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            stars.forEach(star => {
-                if (!star.isPausable || star.paused) {
-                    star.y += star.speed;
+            stars.forEach((star, index) => {
+                if (index === stopStarIndex && !star.stopped) {
+                    star.stopped = true; // Stop the star
+                    star.color = '#ff0000'; // Change color to red when stopped
+                    star.speed = 0;
                 }
-                if (star.y > canvas.height) star.y = 0;
+                if (!star.stopped) {
+                    star.y += star.speed;
+                    if (star.y > canvas.height) star.y = 0;
+                }
                 drawStar(star);
             });
             requestAnimationFrame(updateStars);
         }
 
-        // Play a ping sound when a paused star is clicked
         function playPingSound() {
             const audio = new Audio('https://www.soundjay.com/button/beep-07.wav'); // Ping sound
             audio.play();
         }
 
-        // Check for star click
-        canvas.addEventListener('click', (event) => {
-            stars.forEach(star => {
-                if (!star.paused) {
-                    const distance = Math.sqrt(Math.pow(event.clientX - star.x, 2) + Math.pow(event.clientY - star.y, 2));
-                    if (distance < star.radius) {
-                        star.paused = true; // Pause this star
-                        playPingSound(); // Play the ping sound
-                    }
-                }
-            });
-        });
-
         for (let i = 0; i < 100; i++) stars.push(createStar());
         updateStars();
+
+        // Add event listener to the star that stops
+        canvas.addEventListener('click', (e) => {
+            const x = e.clientX;
+            const y = e.clientY;
+            const star = stars[stopStarIndex];
+            const distance = Math.sqrt((x - star.x) ** 2 + (y - star.y) ** 2);
+            if (distance < star.radius) {
+                playPingSound();
+            }
+        });
+
+        // Loading screen fade out after 3 seconds
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loading-screen').classList.add('hidden');
+            }, 3000); // Adjust the timing if necessary
+        });
     </script>
 </body>
 </html>
