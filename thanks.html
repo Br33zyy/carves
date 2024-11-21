@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>/carves #8s - Da Hood Crew</title>
+    <style>
+        /* Base Styles */
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background: black;
+            color: white;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Starfall Effect */
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 1;
+            transition: opacity 2s ease-out;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Discord Button */
+        .discord-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: orange;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.3s, background-color 0.3s;
+        }
+
+        .discord-btn:hover {
+            background-color: #ff7f00;
+            transform: scale(1.1);
+        }
+
+        .discord-btn img {
+            width: 30px;
+            height: 30px;
+        }
+
+        /* Section Styling */
+        section {
+            padding: 100px 20px;
+            text-align: center;
+        }
+
+        .embed {
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid orange;
+            margin: 20px auto;
+            padding: 15px;
+            border-radius: 10px;
+            width: 70%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .embed.left {
+            margin-left: 5%;
+        }
+
+        .embed.right {
+            margin-left: auto;
+            margin-right: 5%;
+        }
+
+        .embed.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Fade-in Effect */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            opacity: 1;
+            transition: opacity 0.5s ease-in-out;
+            visibility: visible;
+        }
+
+        .loading-text {
+            font-size: 2rem;
+            position: absolute;
+            left: -100%;
+            animation: fadeInLeft 2s forwards;
+        }
+
+        @keyframes fadeInLeft {
+            0% {
+                left: -100%;
+            }
+            100% {
+                left: 0;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loading-screen">
+        <div class="loading-text">Wait here...</div>
+    </div>
+
+    <canvas id="starfall"></canvas>
+
+    <header>
+        <h1>/carves #8s</h1>
+        <button class="discord-btn" onclick="window.location.href='https://discord.gg/carves'">
+            <img src="https://cdn-icons-png.flaticon.com/512/2111/2111370.png" alt="Discord">
+        </button>
+    </header>
+
+    <section id="welcome" class="fade-in">
+        <h2>Welcome to /carves #8s</h2>
+        <p>Unrivaled dominance in Da Hood. We’re not just a crew; we’re a legacy.</p>
+    </section>
+
+    <section id="why-best">
+        <h2>Why We’re the Best</h2>
+        <div class="embed left">
+            <h3>Taking Down Fakes</h3>
+            <p>We expose and dominate fake crews trying to claim our throne.</p>
+        </div>
+        <div class="embed right">
+            <h3>Unmatched Skills</h3>
+            <p>We bring precision, power, and unmatched strategy to every fight.</p>
+        </div>
+        <div class="embed left">
+            <h3>Reputation</h3>
+            <p>Our name strikes fear across every Da Hood server.</p>
+        </div>
+        <div class="embed right">
+            <h3>Dedicated Members</h3>
+            <p>Each member is handpicked for their skill and loyalty.</p>
+        </div>
+    </section>
+
+    <script>
+        // Hide the loading screen after the page is fully loaded
+        window.addEventListener('load', function () {
+            const loadingScreen = document.getElementById('loading-screen');
+            loadingScreen.style.opacity = '0';
+            loadingScreen.style.visibility = 'hidden';
+        });
+
+        // Fade-in on Scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        });
+
+        document.querySelectorAll('.fade-in, .embed').forEach(el => observer.observe(el));
+
+        // Starfall Effect
+        const canvas = document.getElementById('starfall');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        function createStar() {
+            return {
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 2,
+                color: 'orange',
+                speed: Math.random() * 2 + 1,
+                isPausable: Math.random() < 0.05 // 5% chance for a star to pause
+            };
+        }
+
+        function drawStar(star) {
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+            ctx.fillStyle = star.color;
+            ctx.fill();
+        }
+
+        function updateStars() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            stars.forEach(star => {
+                if (!star.isPausable || star.paused) {
+                    star.y += star.speed;
+                }
+                if (star.y > canvas.height) star.y = 0;
+                drawStar(star);
+            });
+            requestAnimationFrame(updateStars);
+        }
+
+        // Stop and fade out stars after 20 seconds
+        setTimeout(function() {
+            canvas.style.opacity = '0'; // Fade out stars
+            setTimeout(() => {
+                canvas.style.display = 'none'; // Remove stars from view completely
+            }, 2000); // After fading out
+        }, 20000); // 20 seconds
+
+        for (let i = 0; i < 100; i++) stars.push(createStar());
+        updateStars();
+    </script>
+</body>
+</html>
